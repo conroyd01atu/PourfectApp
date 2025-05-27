@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PourfectApp.Views.PastBrewsPage"
+             Title="Past Brews"
+             BackgroundColor="#F5F5F5">
+
+    <VerticalStackLayout Padding="20">
+
+        <Label Text="Past Brews" 
+               FontSize="24" 
+               FontAttributes="Bold"
+               TextColor="#4A2C17"
+               HorizontalOptions="Center" 
+               Margin="0,10,0,20"/>
+
+        <!-- Search/Filter Bar -->
+        <Frame BackgroundColor="White" CornerRadius="10" Padding="10" Margin="0,0,0,20">
+            <SearchBar x:Name="BrewSearchBar" 
+                       Placeholder="Search brews..."
+                       BackgroundColor="Transparent"/>
+        </Frame>
+
+        <!-- List of brews -->
+        <CollectionView x:Name="BrewsCollectionView">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BackgroundColor="White" CornerRadius="10" Padding="15" HasShadow="True">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+                            <!-- Coffee Name -->
+                            <Label Text="{Binding CoffeeName}" 
+                                   FontAttributes="Bold" 
+                                   FontSize="18"
+                                   TextColor="#4A2C17"
+                                   Grid.Row="0" Grid.Column="0"/>
+
+                            <!-- Rating -->
+                            <Label Grid.Row="0" Grid.Column="1" VerticalOptions="Center">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="⭐ " FontSize="14"/>
+                                        <Span Text="{Binding Rating, StringFormat='{0:F1}'}" FontSize="14" TextColor="#666"/>
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <!-- Roaster and Date -->
+                            <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding Roaster}" TextColor="#666" FontSize="14"/>
+                                        <Span Text=" • " TextColor="#666" FontSize="14"/>
+                                        <Span Text="{Binding BrewDate, StringFormat='{0:MMM dd, yyyy}'}" TextColor="#666" FontSize="14"/>
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <!-- Brew Method -->
+                            <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding Dripper}" TextColor="#8B4513" FontSize="12"/>
+                                        <Span Text=" • " TextColor="#666" FontSize="12"/>
+                                        <Span Text="{Binding CoffeeWeight}" TextColor="#666" FontSize="12"/>
+                                        <Span Text="g : " TextColor="#666" FontSize="12"/>
+                                        <Span Text="{Binding WaterWeight}" TextColor="#666" FontSize="12"/>
+                                        <Span Text="g" TextColor="#666" FontSize="12"/>
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </Grid>
+
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBrewTapped" CommandParameter="{Binding .}"/>
+                        </Frame.GestureRecognizers>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <!-- Empty state -->
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
+                    <Label Text="☕" FontSize="60" HorizontalOptions="Center" Opacity="0.5"/>
+                    <Label Text="No brews recorded yet" 
+                           FontSize="18" 
+                           TextColor="#666"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Record your first brew to see it here!" 
+                           FontSize="14" 
+                           TextColor="#999"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+    </VerticalStackLayout>
+
+</ContentPage>
