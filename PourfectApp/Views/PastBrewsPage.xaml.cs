@@ -1,88 +1,63 @@
 using System.Collections.ObjectModel;
+using PourfectApp.Models;
 
 namespace PourfectApp.Views
 {
     public partial class PastBrewsPage : ContentPage
     {
-        // Temporary class for displaying brews (will be replaced with proper model later)
-        public class BrewItem
-        {
-            public string CoffeeName { get; set; }
-            public string Roaster { get; set; }
-            public DateTime BrewDate { get; set; }
-            public string Dripper { get; set; }
-            public double CoffeeWeight { get; set; }
-            public double WaterWeight { get; set; }
-            public double Rating { get; set; }
-        }
-
-        private ObservableCollection<BrewItem> brews;
+        private ObservableCollection<Brew> brews;
 
         public PastBrewsPage()
         {
             InitializeComponent();
-            LoadBrews();
+            brews = new ObservableCollection<Brew>();
+            BrewsCollectionView.ItemsSource = brews;
         }
 
-        private void LoadBrews()
+        protected override async void OnAppearing()
         {
-            // For now, create some sample data
-            brews = new ObservableCollection<BrewItem>
-            {
-                new BrewItem
-                {
-                    CoffeeName = "Ethiopian Yirgacheffe",
-                    Roaster = "Blue Bottle Coffee",
-                    BrewDate = DateTime.Today.AddDays(-1),
-                    Dripper = "V60",
-                    CoffeeWeight = 15,
-                    WaterWeight = 250,
-                    Rating = 4.5
-                },
-                new BrewItem
-                {
-                    CoffeeName = "Colombian Geisha",
-                    Roaster = "Local Roaster",
-                    BrewDate = DateTime.Today.AddDays(-3),
-                    Dripper = "Chemex",
-                    CoffeeWeight = 30,
-                    WaterWeight = 500,
-                    Rating = 5.0
-                },
-                new BrewItem
-                {
-                    CoffeeName = "Kenya AA",
-                    Roaster = "Stumptown Coffee",
-                    BrewDate = DateTime.Today.AddDays(-7),
-                    Dripper = "Kalita Wave",
-                    CoffeeWeight = 20,
-                    WaterWeight = 340,
-                    Rating = 4.0
-                }
-            };
+            base.OnAppearing();
+            await LoadBrews();
+        }
 
-            BrewsCollectionView.ItemsSource = brews;
+        private async Task LoadBrews()
+        {
+            try
+            {
+                // Get current user
+                string username = Preferences.Get("username", "Guest");
+
+                // Load brews from database
+                var brewList = await ServiceHelper.Database.GetBrewsByUserAsync(username);
+
+                // Clear and repopulate the collection
+                brews.Clear();
+                foreach (var brew in brewList)
+                {
+                    brews.Add(brew);
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to load brews: {ex.Message}", "OK");
+            }
         }
 
         private async void OnBrewTapped(object sender, EventArgs e)
         {
-            if (sender is Frame frame && frame.BindingContext is BrewItem brew)
+            if (sender is Frame frame && frame.BindingContext is Brew brew)
             {
                 await DisplayAlert("Brew Details",
                     $"Coffee: {brew.CoffeeName}\n" +
                     $"Roaster: {brew.Roaster}\n" +
                     $"Method: {brew.Dripper}\n" +
                     $"Ratio: {brew.CoffeeWeight}g : {brew.WaterWeight}g\n" +
-                    $"Rating: {brew.Rating:F1}/5.0",
+                    $"Temperature: {brew.WaterTemperature}°C\n" +
+                    $"Time: {brew.BrewTime}\n" +
+                    $"Rating: {brew.Rating:F1}/5.0\n\n" +
+                    $"Notes: {brew.Notes}",
                     "OK");
             }
-        }
-
-        protected override void OnAppearing()
-        {
-            base.OnAppearing();
-            // Refresh brews when page appears
-            // This will be useful when we add SQLite
         }
     }
 }

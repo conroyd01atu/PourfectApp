@@ -1,7 +1,10 @@
-﻿namespace PourfectApp.Models
+﻿using SQLite;
+
+namespace PourfectApp.Models
 {
     public class Brew
     {
+        [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
         public string Username { get; set; }
         public DateTime BrewDate { get; set; }
