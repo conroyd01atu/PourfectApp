@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="PourfectApp.Views.LoginPage"
-             Title="Login"
+             x:Class="PourfectApp.Views.RegisterPage"
+             Title="Register"
              BackgroundColor="#F5F5F5">
 
     <ScrollView>
@@ -14,15 +14,15 @@
                    FontAttributes="Bold"
                    TextColor="#4A2C17"
                    HorizontalOptions="Center" 
-                   Margin="0,50,0,30"/>
+                   Margin="0,30,0,10"/>
 
-            <Label Text="Your Pour-Over Companion" 
-                   FontSize="18" 
+            <Label Text="Create Your Account" 
+                   FontSize="20" 
                    TextColor="#666666"
                    HorizontalOptions="Center" 
-                   Margin="0,0,0,40"/>
+                   Margin="0,0,0,30"/>
 
-            <!-- Login Form -->
+            <!-- Registration Form -->
             <Frame BackgroundColor="White" 
                    CornerRadius="10" 
                    Padding="20"
@@ -34,20 +34,41 @@
                            TextColor="#333333"
                            FontSize="14"/>
                     <Entry x:Name="UsernameEntry" 
-                           Placeholder="Enter your username"
+                           Placeholder="Choose a username"
+                           BackgroundColor="#F9F9F9"/>
+
+                    <Label Text="Email" 
+                           TextColor="#333333"
+                           FontSize="14"/>
+                    <Entry x:Name="EmailEntry" 
+                           Placeholder="Enter your email"
+                           Keyboard="Email"
                            BackgroundColor="#F9F9F9"/>
 
                     <Label Text="Password" 
                            TextColor="#333333"
                            FontSize="14"/>
                     <Entry x:Name="PasswordEntry" 
-                           Placeholder="Enter your password"
+                           Placeholder="Create a password"
                            IsPassword="True"
                            BackgroundColor="#F9F9F9"/>
 
-                    <Button x:Name="LoginButton"
-                            Text="Login" 
-                            Clicked="OnLoginClicked"
+                    <Label Text="Confirm Password" 
+                           TextColor="#333333"
+                           FontSize="14"/>
+                    <Entry x:Name="ConfirmPasswordEntry" 
+                           Placeholder="Confirm your password"
+                           IsPassword="True"
+                           BackgroundColor="#F9F9F9"/>
+
+                    <Label Text="Password must be at least 6 characters long" 
+                           TextColor="#999999"
+                           FontSize="12"
+                           HorizontalOptions="Center"/>
+
+                    <Button x:Name="RegisterButton"
+                            Text="Create Account" 
+                            Clicked="OnRegisterClicked"
                             BackgroundColor="#8B4513"
                             TextColor="White"
                             CornerRadius="5"
@@ -56,23 +77,15 @@
                 </VerticalStackLayout>
             </Frame>
 
-            <!-- For now, a simple bypass option -->
-            <Button x:Name="SkipLoginButton"
-                    Text="Continue as Guest" 
-                    Clicked="OnSkipLoginClicked"
-                    BackgroundColor="Transparent"
-                    TextColor="#8B4513"
-                    Margin="0,20,0,0"/>
-
-            <!-- Register Link -->
-            <HorizontalStackLayout HorizontalOptions="Center" Spacing="5" Margin="0,20,0,0">
-                <Label Text="Don't have an account?" 
+            <!-- Login Link -->
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+                <Label Text="Already have an account?" 
                        TextColor="#666666"/>
-                <Label Text="Register" 
+                <Label Text="Login" 
                        TextColor="#8B4513"
                        FontAttributes="Bold">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnRegisterTapped"/>
+                        <TapGestureRecognizer Tapped="OnLoginTapped"/>
                     </Label.GestureRecognizers>
                 </Label>
             </HorizontalStackLayout>

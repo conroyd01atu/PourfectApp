@@ -1,3 +1,5 @@
+using PourfectApp.Models;
+
 namespace PourfectApp.Views
 {
     public partial class LoginPage : ContentPage
@@ -9,7 +11,7 @@ namespace PourfectApp.Views
 
         private async void OnLoginClicked(object sender, EventArgs e)
         {
-            // For now, just check if fields are not empty
+            // Validation
             if (string.IsNullOrWhiteSpace(UsernameEntry.Text) ||
                 string.IsNullOrWhiteSpace(PasswordEntry.Text))
             {
@@ -17,12 +19,39 @@ namespace PourfectApp.Views
                 return;
             }
 
-            // Store username in preferences for later use
-            Preferences.Set("username", UsernameEntry.Text);
-            Preferences.Set("isLoggedIn", true);
+            try
+            {
+                // Get user from database
+                var user = await ServiceHelper.Database.GetUserAsync(UsernameEntry.Text);
 
-            // Navigate to main app
-            Application.Current.MainPage = new AppShell();
+                if (user == null)
+                {
+                    await DisplayAlert("Error", "Invalid username or password", "OK");
+                    return;
+                }
+
+                // Verify password
+                if (!user.VerifyPassword(PasswordEntry.Text))
+                {
+                    await DisplayAlert("Error", "Invalid username or password", "OK");
+                    return;
+                }
+
+                // Update last login date
+                user.LastLoginDate = DateTime.Now;
+                await ServiceHelper.Database.SaveUserAsync(user);
+
+                // Store username in preferences
+                Preferences.Set("username", user.Username);
+                Preferences.Set("isLoggedIn", true);
+
+                // Navigate to main app
+                Application.Current.MainPage = new AppShell();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Login failed: {ex.Message}", "OK");
+            }
         }
 
         private void OnSkipLoginClicked(object sender, EventArgs e)
@@ -33,6 +62,11 @@ namespace PourfectApp.Views
 
             // Navigate to main app
             Application.Current.MainPage = new AppShell();
+        }
+
+        private async void OnRegisterTapped(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new RegisterPage());
         }
     }
 }

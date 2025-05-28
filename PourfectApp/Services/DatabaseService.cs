@@ -15,6 +15,7 @@ namespace PourfectApp.Services
             _database = new SQLiteAsyncConnection(dbPath);
 
             // Create tables
+            _database.CreateTableAsync<User>().Wait();
             _database.CreateTableAsync<Brew>().Wait();
             _database.CreateTableAsync<Recipe>().Wait();
         }
@@ -64,6 +65,15 @@ namespace PourfectApp.Services
                 .ToListAsync();
         }
 
+        public Task<List<Recipe>> GetRecipesByUserAsync(string username)
+        {
+            return _database.Table<Recipe>()
+                .Where(r => r.CreatedBy == username)
+                .OrderByDescending(r => r.IsFavorite)
+                .ThenBy(r => r.Name)
+                .ToListAsync();
+        }
+
         public Task<Recipe> GetRecipeAsync(int id)
         {
             return _database.GetAsync<Recipe>(id);
@@ -84,6 +94,34 @@ namespace PourfectApp.Services
         public Task<int> DeleteRecipeAsync(Recipe recipe)
         {
             return _database.DeleteAsync(recipe);
+        }
+
+        // User methods
+        public Task<User> GetUserAsync(string username)
+        {
+            return _database.Table<User>()
+                .Where(u => u.Username == username)
+                .FirstOrDefaultAsync();
+        }
+
+        public Task<int> SaveUserAsync(User user)
+        {
+            if (user.Id != 0)
+            {
+                return _database.UpdateAsync(user);
+            }
+            else
+            {
+                return _database.InsertAsync(user);
+            }
+        }
+
+        public Task<bool> UserExistsAsync(string username)
+        {
+            return _database.Table<User>()
+                .Where(u => u.Username == username)
+                .CountAsync()
+                .ContinueWith(t => t.Result > 0);
         }
     }
 }
