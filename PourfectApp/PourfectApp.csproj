@@ -74,6 +74,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\PourfectApp.Core\PourfectApp.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <MauiXaml Update="Views\CreateRecipePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -105,5 +109,6 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
+	
 
 </Project>
