@@ -1,96 +1,166 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows.Input;
+using PourfectApp.Models;
 
 namespace PourfectApp.Views
 {
     public partial class RecipesPage : ContentPage
     {
-        // Temporary class for displaying recipes (will be replaced with proper model later)
-        public class RecipeItem
-        {
-            public string Name { get; set; }
-            public string Description { get; set; }
-            public string Method { get; set; }
-            public string Ratio { get; set; }
-            public int Temperature { get; set; }
-            public string TotalTime { get; set; }
-            public string GrindSize { get; set; }
-            public bool IsFavorite { get; set; }
-            public string FavoriteIcon => IsFavorite ? "⭐" : "☆";
-        }
+        private ObservableCollection<Recipe> allRecipes;
+        private ObservableCollection<Recipe> filteredRecipes;
+        private string currentFilter = "All";
 
-        private ObservableCollection<RecipeItem> recipes;
+        public ICommand EditCommand { get; }
+        public ICommand DeleteCommand { get; }
 
         public RecipesPage()
         {
             InitializeComponent();
-            LoadRecipes();
+
+            allRecipes = new ObservableCollection<Recipe>();
+            filteredRecipes = new ObservableCollection<Recipe>();
+            RecipesCollectionView.ItemsSource = filteredRecipes;
+
+            // Set up commands
+            EditCommand = new Command<Recipe>(async (recipe) => await EditRecipe(recipe));
+            DeleteCommand = new Command<Recipe>(async (recipe) => await DeleteRecipe(recipe));
+            RecipesCollectionView.BindingContext = this;
         }
 
-        private void LoadRecipes()
+        protected override async void OnAppearing()
         {
-            // Sample recipes to get started
-            recipes = new ObservableCollection<RecipeItem>
+            base.OnAppearing();
+            await LoadRecipes();
+        }
+
+        private async Task LoadRecipes()
+        {
+            try
             {
-                new RecipeItem
+                // Get current user
+                string username = Preferences.Get("username", "Guest");
+
+                // Load all recipes from database
+                var recipes = await ServiceHelper.Database.GetRecipesAsync();
+
+                // Filter by current user
+                var userRecipes = recipes.Where(r => r.CreatedBy == username).ToList();
+
+                // Update collections
+                allRecipes.Clear();
+                foreach (var recipe in userRecipes)
                 {
-                    Name = "James Hoffmann V60",
-                    Description = @"Award winning Barista Jame Hoffman's v60 Recipe. 
-                            Pour in three stages: 2x the weight of grounds for the bloom (45 seconds), then two equal pours at 45-second intervals.
-                            Stir during the bloom, swirl gently at the end, and aim for a total brew time of around 2:30.",
-                    Method = "V60",
-                    Ratio = "1:16.67",
-                    Temperature = 95,
-                    TotalTime = "2:30",
-                    GrindSize = "Fine",
-                    IsFavorite = true
-                },
-                new RecipeItem
-                {
-                    Name = "Scott Rao Chemex",
-                    Description = "Classic Chemex recipe for clean, bright cups",
-                    Method = "Chemex",
-                    Ratio = "1:15",
-                    Temperature = 96,
-                    TotalTime = "4:00",
-                    GrindSize = "Medium-Coarse",
-                    IsFavorite = false
-                },
-                new RecipeItem
-                {
-                    Name = "4:6 Method",
-                   Description = @"Tetsu Kasuya's flexible recipe for adjusting sweetness and strength. 
-                                   Divide your first four pours into 40 percent of the total water weight, 
-                                   and adjust the remaining 60 percent to taste, either in 1 pour, 
-                                   or 3–4 more smaller pours.",
-                    Method = "V60",
-                    Ratio = "1:15",
-                    Temperature = 90,
-                    TotalTime = "3:45",
-                    GrindSize = "Coarse",
-                    IsFavorite = true
+                    allRecipes.Add(recipe);
                 }
+
+                // Apply current filter
+                ApplyFilter();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to load recipes: {ex.Message}", "OK");
+            }
+        }
+
+        private void ApplyFilter()
+        {
+            filteredRecipes.Clear();
+
+            IEnumerable<Recipe> filtered = currentFilter switch
+            {
+                "All" => allRecipes,
+                "Favorites" => allRecipes.Where(r => r.IsFavorite),
+                _ => allRecipes.Where(r => r.Method == currentFilter)
             };
 
-            RecipesCollectionView.ItemsSource = recipes;
+            foreach (var recipe in filtered)
+            {
+                filteredRecipes.Add(recipe);
+            }
+        }
+
+        private void OnFilterClicked(object sender, EventArgs e)
+        {
+            if (sender is Button button && button.CommandParameter is string filter)
+            {
+                currentFilter = filter;
+
+                // Define colors
+                var selectedBgColor = Color.FromArgb("#4A2C17");
+                var unselectedBgColor = Colors.White;
+                var selectedTextColor = Colors.White;
+                var unselectedTextColor = Color.FromArgb("#4A2C17");
+
+                // Update button states
+                foreach (var child in FilterButtons.Children)
+                {
+                    if (child is Button btn)
+                    {
+                        bool isSelected = btn.CommandParameter?.ToString() == filter;
+                        btn.BackgroundColor = isSelected ? selectedBgColor : unselectedBgColor;
+                        btn.TextColor = isSelected ? selectedTextColor : unselectedTextColor;
+                    }
+                }
+
+                ApplyFilter();
+            }
         }
 
         private async void OnAddRecipeClicked(object sender, EventArgs e)
         {
-            await DisplayAlert("Add Recipe", "Recipe creation will be implemented with SQLite database", "OK");
+            await Navigation.PushAsync(new CreateRecipePage());
+        }
+
+        private async void OnFavoriteClicked(object sender, EventArgs e)
+        {
+            if (sender is Button button && button.CommandParameter is Recipe recipe)
+            {
+                recipe.IsFavorite = !recipe.IsFavorite;
+                await ServiceHelper.Database.SaveRecipeAsync(recipe);
+
+                // Update the display
+                button.Text = recipe.FavoriteIcon;
+
+                // If we're viewing favorites and unfavorited, remove from view
+                if (currentFilter == "Favorites" && !recipe.IsFavorite)
+                {
+                    filteredRecipes.Remove(recipe);
+                }
+            }
         }
 
         private async void OnRecipeTapped(object sender, EventArgs e)
         {
-            if (sender is Frame frame && frame.BindingContext is RecipeItem recipe)
+            if (sender is Frame frame && frame.BindingContext is Recipe recipe)
             {
-                string details = $"Method: {recipe.Method}\n" +
-                               $"Ratio: {recipe.Ratio}\n" +
-                               $"Temperature: {recipe.Temperature}°C\n" +
-                               $"Total Time: {recipe.TotalTime}\n" +
-                               $"Grind Size: {recipe.GrindSize}\n\n" +
-                               $"{recipe.Description}";
+                await Navigation.PushAsync(new RecipeDetailPage(recipe));
+            }
+        }
 
-                await DisplayAlert(recipe.Name, details, "OK");
+        private async Task EditRecipe(Recipe recipe)
+        {
+            // For now, show alert - you can create an EditRecipePage later
+            await DisplayAlert("Edit Recipe", $"Edit functionality for {recipe.Name} coming soon!", "OK");
+        }
+
+        private async Task DeleteRecipe(Recipe recipe)
+        {
+            bool answer = await DisplayAlert("Delete Recipe",
+                $"Are you sure you want to delete '{recipe.Name}'?",
+                "Yes", "No");
+
+            if (answer)
+            {
+                try
+                {
+                    await ServiceHelper.Database.DeleteRecipeAsync(recipe);
+                    allRecipes.Remove(recipe);
+                    filteredRecipes.Remove(recipe);
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Error", $"Failed to delete recipe: {ex.Message}", "OK");
+                }
             }
         }
     }

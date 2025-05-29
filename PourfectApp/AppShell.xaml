@@ -10,20 +10,39 @@
     Shell.TabBarUnselectedColor="#D3D3D3">
 
     <TabBar>
-        <Tab Title="Record" Icon="plus.png">
+        <Tab Title="Record">
+            <Tab.Icon>
+                <FontImageSource Glyph="+" FontFamily="OpenSansRegular" Size="24" Color="White"/>
+            </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:RecordBrewPage}" />
         </Tab>
 
-        <Tab Title="History" Icon="list.png">
+        <Tab Title="History">
+            <Tab.Icon>
+                <FontImageSource Glyph="☰" FontFamily="OpenSansRegular" Size="24" Color="White"/>
+            </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:PastBrewsPage}" />
         </Tab>
 
-        <Tab Title="Recipes" Icon="book.png">
+        <Tab Title="Recipes">
+            <Tab.Icon>
+                <FontImageSource Glyph="📖" FontFamily="OpenSansRegular" Size="24" Color="White"/>
+            </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:RecipesPage}" />
         </Tab>
 
-        <Tab Title="Timer" Icon="clock.png">
+        <Tab Title="Timer">
+            <Tab.Icon>
+                <FontImageSource Glyph="⏱" FontFamily="OpenSansRegular" Size="24" Color="White"/>
+            </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:TimerPage}" />
+        </Tab>
+
+        <Tab Title="Profile">
+            <Tab.Icon>
+                <FontImageSource Glyph="👤" FontFamily="OpenSansRegular" Size="24" Color="White"/>
+            </Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ProfilePage}" />
         </Tab>
     </TabBar>
 
